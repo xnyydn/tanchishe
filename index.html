@@ -1,0 +1,243 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>贪吃蛇</title>
+<style>
+	*{margin:0; padding:0;}
+	#operate{ width:200px; float:left; margin:30px 0 0 30px;}
+	#operate input{padding:10px 20px; font-size:30px; width:200px; height:80px;}
+    #table_view{float:left; margin:30px 0 0 50px; border-collapse:collapse;}
+	#table_view td{width:15px; height:15px; font-size:0; border:1px solid #cccccc;}
+</style>
+</head>
+
+<body>
+<div id="operate">
+	<input type="button" value="开始\暂停" onClick="startStop()">
+    <br/>
+    <br/>
+    <input type="button" value="重新开始" onClick="reStart()">
+</div>
+<table id="table_view"></table>
+</body>
+</html>
+<script>
+	//表格横纵数量
+	var td_num=20;
+	//蛇的数组
+	var snakeArr=[[0,0],[0,1],[0,2]];
+	//蛇颜色
+	var snakeColor="#ff0000";
+	//食物颜色
+	var foodColor="#00baff";
+	//蛇移动的方向
+	var direction="r";
+	//移动速度
+	var speed=100;
+	//开始暂停  0开始 1暂停
+	var sp=1;
+	
+	var flag=true;
+	
+	var table_view=document.getElementById("table_view");
+	
+	//生成蛇盘底部表格
+	function addTd(){
+		for(var i=0; i<td_num; i++)
+		{
+			tr=table_view.insertRow();
+			for(var j=0; j<td_num; j++)
+			{
+				tr.insertCell();
+			}
+		}
+	}
+	//生成蛇
+	function addSnake(){
+		for(var i=0; i<snakeArr.length; i++)
+		{
+			oneTd=snakeArr[i];
+			table_view.rows[oneTd[0]].cells[oneTd[1]].style.backgroundColor=snakeColor;
+		}
+	}
+	
+	//生成食物
+	function addFood(){
+		y=Math.floor(Math.random()*td_num);
+		x=Math.floor(Math.random()*td_num);
+		if(checkeSnake(y,x))
+		{
+			table_view.rows[y].cells[x].style.backgroundColor=foodColor;
+			table_view.rows[y].cells[x].name="food";
+		}
+		else
+		{
+			addFood();
+		}
+	}
+	
+	//检测表格是否有颜色 
+	function checkeSnake(y,x)
+	{
+		if(table_view.rows[y].cells[x].style.backgroundColor=="")
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
+	//蛇移动
+	function snakeMove(){
+		snakeHead=snakeArr[snakeArr.length-1];
+		y=snakeHead[0];
+		x=snakeHead[1];
+		if(direction=="r")
+		{
+			x++;
+		}
+		else if(direction=="l")
+		{
+			x--;
+		}
+		else if(direction=="t")
+		{
+			y--;
+		}
+		else if(direction=="b")
+		{
+			y++;
+		}
+		checkOver(y,x)
+	}
+	
+	//检测游戏是不是结束了
+	function checkOver(y,x){
+			if(y>=0 && y<td_num && x>=0 && x<td_num)
+			{
+				
+					if(table_view.rows[y].cells[x].name=="food")
+					{
+						snakeArr.push([y,x]);
+						table_view.rows[y].cells[x].style.backgroundColor=snakeColor;
+						table_view.rows[y].cells[x].name="";
+						addFood();
+					}
+					else
+					{
+						if(checkeSnake(y,x))
+						{
+							snakeArr.push([y,x]);
+							var rC=snakeArr.shift();
+							table_view.rows[rC[0]].cells[rC[1]].style.backgroundColor="";
+							table_view.rows[y].cells[x].style.backgroundColor=snakeColor;
+						}
+						else
+						{
+							if(snakeArr[0][0]==y && snakeArr[0][1]==x)
+							{
+								snakeArr.push([y,x]);
+								var rC=snakeArr.shift();
+								table_view.rows[rC[0]].cells[rC[1]].style.backgroundColor="";
+								table_view.rows[y].cells[x].style.backgroundColor=snakeColor;
+							}
+							else
+							{
+								clearInterval(timer);
+								alert("GAMEOVER");
+								flag=false;
+								return;
+							}
+						}
+					}
+			}
+			else
+			{
+				clearInterval(timer);
+				alert("GAMEOVER");
+				flag=false;
+				return;
+			}
+			flag=true;
+	}
+	
+	//开始暂停游戏
+	function startStop()
+	{
+		if(sp==1)
+		{
+		 	timer=setInterval("snakeMove()",speed)
+			sp=0;
+		}
+		else
+		{
+			clearInterval(timer);
+			sp=1;
+		}
+	}
+	
+	//方向控制
+	document.onkeydown=function(e){
+		e=e || window.event;
+		if(flag)
+		{
+			if(e.keyCode==37)
+			{
+				if(direction!="r")
+				{
+					direction="l";
+				}
+			}
+			else if(e.keyCode==38)
+			{
+				if(direction!="b")
+				{
+					direction="t";
+				}
+			}
+			else if(e.keyCode==39)
+			{
+				if(direction!="l")
+				{
+					direction="r";
+				}
+			}
+			else if(e.keyCode==40)
+			{
+				if(direction!="t")
+				{
+					direction="b";
+				}
+			}
+		}
+		flag=false;
+	}
+	
+	//初始化
+	function init()
+	{
+		addTd()
+		addSnake()
+		addFood()
+	}
+	//重新开始
+	function reStart()
+	{
+		snakeArr=[[0,0],[0,1],[0,2]];
+		direction="r";
+		sp=1;
+		flag=true;
+		table_view.innerHTML="";
+		clearInterval(timer);
+		init();
+	}
+	init();
+</script>
+
+
+
+
+
